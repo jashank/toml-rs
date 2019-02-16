@@ -17,18 +17,11 @@ fn to_json(toml: toml::Value) -> Json {
     match toml {
         Toml::String(s) => doit("string", Json::String(s)),
         Toml::Integer(i) => doit("integer", Json::String(i.to_string())),
-        Toml::Float(f) => doit(
-            "float",
-            Json::String({
-                let s = format!("{:.15}", f);
-                let s = format!("{}", s.trim_end_matches('0'));
-                if s.ends_with('.') {
-                    format!("{}0", s)
-                } else {
-                    s
-                }
-            }),
-        ),
+        Toml::Float(f) => doit("float", Json::String({
+            let s = format!("{:.15}", f);
+            let s = format!("{}", s.trim_end_matches('0'));
+            if s.ends_with('.') {format!("{}0", s)} else {s}
+        })),
         Toml::Boolean(b) => doit("bool", Json::String(format!("{}", b))),
         Toml::Datetime(s) => doit("datetime", Json::String(s.to_string())),
         Toml::Array(arr) => {
