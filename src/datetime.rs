@@ -79,7 +79,7 @@ impl FromStr for Datetime {
 }
 
 /// Z|[+-]HH:MM
-fn parse_offset(chars: &mut Chars) -> Result<chrono::FixedOffset, DatetimeParseError> {
+fn parse_offset(chars: &mut Chars<'_>) -> Result<chrono::FixedOffset, DatetimeParseError> {
     if accept(chars, 'Z') { return Ok(chrono::FixedOffset::east(0)) }
     let sign = if accept(chars, '+') { 1 } else { expect(chars, '-')?; -1 };
     let h = digits(chars, 2)?;
@@ -92,7 +92,7 @@ fn parse_offset(chars: &mut Chars) -> Result<chrono::FixedOffset, DatetimeParseE
 }
 
 /// HH:MM:SS(\.S+)?
-fn parse_time(chars: &mut Chars) -> Result<chrono::NaiveTime, DatetimeParseError> {
+fn parse_time(chars: &mut Chars<'_>) -> Result<chrono::NaiveTime, DatetimeParseError> {
     let h = digits(chars, 2)?;
     expect(chars, ':')?;
     let m = digits(chars, 2)?;
@@ -106,7 +106,7 @@ fn parse_time(chars: &mut Chars) -> Result<chrono::NaiveTime, DatetimeParseError
 }
 
 /// YYYY-MM-DD
-fn parse_date(chars: &mut Chars) -> Result<chrono::NaiveDate, DatetimeParseError> {
+fn parse_date(chars: &mut Chars<'_>) -> Result<chrono::NaiveDate, DatetimeParseError> {
     let y = digits(chars, 4)?;
     expect(chars, '-')?;
     let m = digits(chars, 2)?;
@@ -118,7 +118,7 @@ fn parse_date(chars: &mut Chars) -> Result<chrono::NaiveDate, DatetimeParseError
     }
 }
 
-fn expect(chars: &mut Chars, c: char) -> Result<(), DatetimeParseError> {
+fn expect(chars: &mut Chars<'_>, c: char) -> Result<(), DatetimeParseError> {
     if chars.next() == Some(c) {
         Ok(())
     } else {
@@ -126,7 +126,7 @@ fn expect(chars: &mut Chars, c: char) -> Result<(), DatetimeParseError> {
     }
 }
 
-fn expect_end(chars: &mut Chars) -> Result<(), DatetimeParseError> {
+fn expect_end(chars: &mut Chars<'_>) -> Result<(), DatetimeParseError> {
     if chars.next() == None {
         Ok(())
     } else {
@@ -134,7 +134,7 @@ fn expect_end(chars: &mut Chars) -> Result<(), DatetimeParseError> {
     }
 }
 
-fn accept(chars: &mut Chars, c: char) -> bool {
+fn accept(chars: &mut Chars<'_>, c: char) -> bool {
     if chars.clone().next() == Some(c) {
         let _ = chars.next();
         true
@@ -144,7 +144,7 @@ fn accept(chars: &mut Chars, c: char) -> bool {
 }
 
 /// [0-9]+
-fn fract(chars: &mut Chars, n: usize) -> Result<i32, DatetimeParseError> {
+fn fract(chars: &mut Chars<'_>, n: usize) -> Result<i32, DatetimeParseError> {
     let mut x = digit(chars)? as i32;
     let mut i = 1;
     while let Ok(d) = digit(&mut chars.clone()) {
@@ -160,7 +160,7 @@ fn fract(chars: &mut Chars, n: usize) -> Result<i32, DatetimeParseError> {
 }
 
 /// [0-9]
-fn digit(chars: &mut Chars) -> Result<u8, DatetimeParseError> {
+fn digit(chars: &mut Chars<'_>) -> Result<u8, DatetimeParseError> {
     match chars.next() {
         Some(c) if '0' <= c && c <= '9' => Ok(c as u8 - b'0'),
         _ => Err(DatetimeParseError::new()),
@@ -168,7 +168,7 @@ fn digit(chars: &mut Chars) -> Result<u8, DatetimeParseError> {
 }
 
 /// [0-9]{n}
-fn digits(chars: &mut Chars, n: usize) -> Result<i32, DatetimeParseError> {
+fn digits(chars: &mut Chars<'_>, n: usize) -> Result<i32, DatetimeParseError> {
     let mut x = 0i32;
     for _ in 0..n {
         x = 10*x + digit(chars)? as i32;
@@ -210,7 +210,7 @@ impl<'de> Deserialize<'de> for Datetime {
                 impl<'de> de::Visitor<'de> for FieldVisitor {
                     type Value = ();
 
-                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                         formatter.write_str("a valid datetime field")
                     }
 
@@ -257,7 +257,7 @@ impl<'de> Deserialize<'de> for Datetime {
 }
 
 impl fmt::Display for Datetime {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Datetime::OffsetDatetime(x) => {
                 let local = x.naive_local();
