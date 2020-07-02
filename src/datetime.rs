@@ -46,7 +46,7 @@ impl FromStr for Datetime {
         // LocalDate      : YYYY-MM-DD
         // LocalTime      : HH:MM:SS(\.S+)?
         // LocalDatetime  : { LocalDate }[Tt ]{ LocalTime }
-        // OffsetDatetime : { OffsetDatetime }(Z|[+-]HH:MM)
+        // OffsetDatetime : { OffsetDatetime }([Zz]|[+-]HH:MM)
 
         let chars = &mut s.chars();
 
@@ -78,9 +78,9 @@ impl FromStr for Datetime {
     }
 }
 
-/// Z|[+-]HH:MM
+/// [Zz]|[+-]HH:MM
 fn parse_offset(chars: &mut Chars<'_>) -> Result<chrono::FixedOffset, DatetimeParseError> {
-    if accept(chars, 'Z') { return Ok(chrono::FixedOffset::east(0)) }
+    if accept(chars, 'Z') || accept(chars, 'z') { return Ok(chrono::FixedOffset::east(0)) }
     let sign = if accept(chars, '+') { 1 } else { expect(chars, '-')?; -1 };
     let h = digits(chars, 2)?;
     expect(chars, ':')?;
